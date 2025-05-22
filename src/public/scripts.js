@@ -1135,7 +1135,8 @@ function addAuthHeader(headers = {}) {
     const token = localStorage.getItem('adminToken');
     return {
         ...headers,
-        'Authorization': `Bearer ${token}`
+        'Authorization': `Bearer ${token}`,
+        'X-Auth-Token': `Bearer ${token}`
     };
 }
 

@@ -36,6 +36,7 @@
     "manage-cookies": "node manage-invalid-cookies.js"
   },
   "devDependencies": {
+    "javascript-obfuscator": "^4.1.1",
     "protobufjs-cli": "^1.1.3"
   }
 }

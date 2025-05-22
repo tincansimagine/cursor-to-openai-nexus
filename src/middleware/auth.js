@@ -18,8 +18,8 @@ function authMiddleware(req, res, next) {
         req.path.startsWith('/v1/invalid-cookies') || 
         req.path.startsWith('/v1/refresh-cookies') ||
         req.path.startsWith('/v1/logs')) {
-        // 获取Authorization头
-        const authHeader = req.headers.authorization;
+        // 获取Authorization头 - Hugging Face Space에서 Authorization 헤더가 자동으로 제거되므로 X-Auth-Token도 사용
+        const authHeader = req.headers.authorization || req.headers['x-auth-token'];
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
             return res.status(401).json({
                 success: false,

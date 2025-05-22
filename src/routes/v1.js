@@ -101,7 +101,8 @@ router.post('/admin/login', (req, res) => {
 // 验证token
 router.get('/admin/verify', (req, res) => {
   try {
-    const authHeader = req.headers.authorization;
+    // Hugging Face Space에서 Authorization 헤더가 자동으로 제거되므로 X-Auth-Token도 사용
+    const authHeader = req.headers.authorization || req.headers['x-auth-token'];
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({
         success: false,
@@ -310,7 +311,8 @@ router.post("/invalid-cookies", async (req, res) => {
 
 router.get("/models", async (req, res) => {
   try{
-    let bearerToken = req.headers.authorization?.replace('Bearer ', '');
+    // Hugging Face Space에서 Authorization 헤더가 자동으로 제거되므로 X-Auth-Token 사용
+    let bearerToken = (req.headers.authorization || req.headers['x-auth-token'])?.replace('Bearer ', '');
     
     // 使用keyManager获取实际的cookie
     let authToken = keyManager.getCookieForApiKey(bearerToken);
@@ -333,6 +335,7 @@ router.get("/models", async (req, res) => {
       headers: {
         'accept-encoding': 'gzip',
         'authorization': `Bearer ${authToken}`,
+        'x-auth-token': `Bearer ${authToken}`,
         'connect-protocol-version': '1',
         'content-type': 'application/proto',
         'user-agent': 'connect-es/1.6.1',
@@ -396,7 +399,8 @@ router.post('/chat/completions', async (req, res) => {
 
   try {
     const { model, messages, stream = false } = req.body;
-    let bearerToken = req.headers.authorization?.replace('Bearer ', '');
+    // Hugging Face Space에서 Authorization 헤더가 자동으로 제거되므로 X-Auth-Token 사용
+    let bearerToken = (req.headers.authorization || req.headers['x-auth-token'])?.replace('Bearer ', '');
     
     // 使用keyManager获取实际的cookie
     let authToken = keyManager.getCookieForApiKey(bearerToken);
@@ -462,6 +466,7 @@ router.post('/chat/completions', async (req, res) => {
             method: 'POST',
             headers: {
               'authorization': `Bearer ${authToken}`,
+              'x-auth-token': `Bearer ${authToken}`,
               'connect-accept-encoding': 'gzip',
               'connect-content-encoding': 'gzip',
               'connect-protocol-version': '1',
@@ -493,6 +498,7 @@ router.post('/chat/completions', async (req, res) => {
           method: 'POST',
           headers: {
             'authorization': `Bearer ${authToken}`,
+            'x-auth-token': `Bearer ${authToken}`,
             'connect-accept-encoding': 'gzip',
             'connect-content-encoding': 'gzip',
             'connect-protocol-version': '1',
@@ -1114,7 +1120,8 @@ router.get("/refresh-status", (req, res) => {
 router.post('/generate-cookie-link', async (req, res) => {
   try {
     // 验证管理员权限
-    const authHeader = req.headers.authorization;
+    // Hugging Face Space에서 Authorization 헤더가 자동으로 제거되므로 X-Auth-Token도 사용
+    const authHeader = req.headers.authorization || req.headers['x-auth-token'];
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({
         success: false,
@@ -1353,6 +1360,7 @@ async function others(authToken, clientKey, checksum, cursorClientVersion, sessi
         headers: {
           'accept-encoding': 'gzip',
           'authorization': `Bearer ${authToken}`,
+          'x-auth-token': `Bearer ${authToken}`,
           'connect-protocol-version': '1',
           'content-type': 'application/proto',
           'user-agent': 'connect-es/1.6.1',
@@ -1377,6 +1385,7 @@ async function others(authToken, clientKey, checksum, cursorClientVersion, sessi
         method: 'POST',
         headers: {
           'authorization': `Bearer ${authToken}`,
+          'x-auth-token': `Bearer ${authToken}`,
           'connect-accept-encoding': 'gzip',
           'connect-protocol-version': '1',
           'content-type': 'application/proto',
@@ -1403,6 +1412,7 @@ async function others(authToken, clientKey, checksum, cursorClientVersion, sessi
         headers: {
           'accept-encoding': 'gzip',
           'authorization': `Bearer ${authToken}`,
+          'x-auth-token': `Bearer ${authToken}`,
           'connect-protocol-version': '1',
           'content-type': 'application/proto',
           'user-agent': 'connect-es/1.6.1',
@@ -1453,6 +1463,7 @@ async function others(authToken, clientKey, checksum, cursorClientVersion, sessi
         headers: {
           'accept-encoding': 'gzip',
           'authorization': `Bearer ${authToken}`,
+          'x-auth-token': `Bearer ${authToken}`,
           'connect-protocol-version': '1',
           'content-type': 'application/proto',
           'user-agent': 'connect-es/1.6.1',
@@ -1478,6 +1489,7 @@ async function others(authToken, clientKey, checksum, cursorClientVersion, sessi
         headers: {
           'accept-encoding': 'gzip',
           'authorization': `Bearer ${authToken}`,
+          'x-auth-token': `Bearer ${authToken}`,
           'connect-protocol-version': '1',
           'content-type': 'application/proto',
           'user-agent': 'connect-es/1.6.1',

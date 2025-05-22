@@ -28,6 +28,9 @@ ROTATION_STRATEGY=default
 # 是否使用TLS代理 (true 或 false)
 USE_TLS_PROXY={USE_TLS_PROXY_PLACEHOLDER}
 
+# 是否使用辅助代理服务器 (true 或 false)
+USE_OTHERS_PROXY={USE_OTHERS_PROXY_PLACEHOLDER}
+
 # 代理服务器平台
 # 可选值: auto, windows_x64, linux_x64, android_arm64
 # auto: 自动检测平台
@@ -50,6 +53,7 @@ function loadExistingConfig() {
   let existingConfig = {
     apiKeys: {},
     useTlsProxy: true,
+    useOthersProxy: true,
     proxyPlatform: 'auto',
     useOthers: true,
     rotationStrategy: 'default'
@@ -75,6 +79,11 @@ function loadExistingConfig() {
       // 提取TLS代理配置
       if (envConfig.USE_TLS_PROXY !== undefined) {
         existingConfig.useTlsProxy = envConfig.USE_TLS_PROXY === 'true';
+      }
+      
+      // 提取辅助代理服务器配置
+      if (envConfig.USE_OTHERS_PROXY !== undefined) {
+        existingConfig.useOthersProxy = envConfig.USE_OTHERS_PROXY === 'true';
       }
       
       // 提取代理服务器平台
@@ -123,6 +132,7 @@ async function collectConfig() {
   const config = {
     apiKeys: {},
     useTlsProxy: existingConfig.useTlsProxy,
+    useOthersProxy: existingConfig.useOthersProxy,
     proxyPlatform: existingConfig.proxyPlatform,
     useOthers: existingConfig.useOthers,
     rotationStrategy: existingConfig.rotationStrategy
@@ -135,6 +145,12 @@ async function collectConfig() {
   config.useTlsProxy = useTlsProxyAnswer.toLowerCase() === 'y';
 
   if (config.useTlsProxy) {
+    // 询问是否使用辅助代理服务器
+    const useOthersProxyPrompt = `是否使用辅助代理服务器(port 10654)? (y/n)`;
+    const defaultUseOthersProxy = existingConfig.useOthersProxy ? 'y' : 'n';
+    const useOthersProxyAnswer = await promptWithDefault(useOthersProxyPrompt, defaultUseOthersProxy);
+    config.useOthersProxy = useOthersProxyAnswer.toLowerCase() === 'y';
+    
     // 询问代理服务器平台
     console.log('\n代理服务器平台选项:');
     console.log('- auto: 自动检测当前系统平台');
@@ -206,6 +222,7 @@ function generateEnvFile(config) {
     let envContent = ENV_TEMPLATE
       .replace('{API_KEYS_PLACEHOLDER}', apiKeysJson)
       .replace('{USE_TLS_PROXY_PLACEHOLDER}', config.useTlsProxy)
+      .replace('{USE_OTHERS_PROXY_PLACEHOLDER}', config.useOthersProxy)
       .replace('{PROXY_PLATFORM_PLACEHOLDER}', config.proxyPlatform)
       .replace('{USE_OTHERS_PLACEHOLDER}', config.useOthers);
     
@@ -254,6 +271,7 @@ async function main() {
       console.log(`\n当前TLS代理配置:`);
       console.log(`- 是否启用TLS代理: ${config.useTlsProxy ? '是' : '否'}`);
       if (config.useTlsProxy) {
+        console.log(`- 是否启用辅助代理服务器: ${config.useOthersProxy ? '是' : '否'}`);
         console.log(`- 代理服务器平台: ${config.proxyPlatform}`);
       }
 
