@@ -1133,26 +1133,54 @@ function handleLogout() {
 // 添加token到所有API请求
 function addAuthHeader(headers = {}) {
     const token = localStorage.getItem('adminToken');
-    return {
-        ...headers,
-        'Authorization': `Bearer ${token}`,
-        'X-Auth-Token': `Bearer ${token}`
-    };
+    if (!token) return headers; // 토큰이 없으면 원래 헤더 반환
+    
+    // 대소문자 구분 없이 헤더가 이미 있는지 확인
+    const normalizedHeaders = {};
+    if (headers) {
+        Object.keys(headers).forEach(key => {
+            normalizedHeaders[key.toLowerCase()] = headers[key];
+        });
+    }
+    
+    // 새 헤더 객체 생성
+    const result = { ...headers };
+    
+    // 이미 존재하지 않는 경우에만 헤더 추가
+    if (!normalizedHeaders['authorization']) {
+        result['Authorization'] = `Bearer ${token}`;
+    }
+    
+    if (!normalizedHeaders['x-auth-token']) {
+        result['X-Auth-Token'] = `Bearer ${token}`;
+    }
+    
+    console.log('생성된 헤더:', result); // 디버깅용
+    return result;
 }
 
 // 修改所有fetch请求，添加token
 (function() {
     const originalFetch = window.fetch;
     window.fetch = function(url, options = {}) {
-        // 只对管理页面的API请求添加token
+        options = options || {};
+        
+        // 인증이 필요한 요청 확인
         if (url.includes('/v1/api-keys') || 
             url.includes('/v1/invalid-cookies') || 
             url.includes('/v1/refresh-cookies') ||
             url.includes('/v1/generate-cookie-link') ||
             url.includes('/v1/check-cookie-status') ||
-            url.includes('/v1/logs')) {
+            url.includes('/v1/logs') ||
+            url.includes('/v1/admin/verify')) { // admin/verify 추가
+            
+            // 헤더에 인증 정보 추가
             options.headers = addAuthHeader(options.headers);
+            
+            // 디버깅을 위한 로그
+            console.log('인증 요청:', url, options.headers);
         }
+        
         return originalFetch(url, options);
     };
 })();

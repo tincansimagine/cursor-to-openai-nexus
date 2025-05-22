@@ -101,8 +101,20 @@ router.post('/admin/login', (req, res) => {
 // 验证token
 router.get('/admin/verify', (req, res) => {
   try {
-    // Hugging Face Space에서 Authorization 헤더가 자동으로 제거되므로 X-Auth-Token도 사용
-    const authHeader = req.headers.authorization || req.headers['x-auth-token'];
+    // 디버깅: 모든 헤더 출력
+    logger.debug('verify 요청 헤더:', JSON.stringify(req.headers));
+    
+    // 大小写不敏感地获取认证头
+    let authHeader = null;
+    for (const key in req.headers) {
+      if (key.toLowerCase() === 'authorization' || key.toLowerCase() === 'x-auth-token') {
+        authHeader = req.headers[key];
+        if (authHeader) break;
+      }
+    }
+    
+    logger.debug('인증 헤더 발견:', authHeader);
+    
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({
         success: false,
@@ -1120,8 +1132,20 @@ router.get("/refresh-status", (req, res) => {
 router.post('/generate-cookie-link', async (req, res) => {
   try {
     // 验证管理员权限
-    // Hugging Face Space에서 Authorization 헤더가 자동으로 제거되므로 X-Auth-Token도 사용
-    const authHeader = req.headers.authorization || req.headers['x-auth-token'];
+    // 디버깅: 모든 헤더 출력
+    logger.debug('generate-cookie-link 요청 헤더:', JSON.stringify(req.headers));
+    
+    // 大小写不敏感地获取认证头
+    let authHeader = null;
+    for (const key in req.headers) {
+      if (key.toLowerCase() === 'authorization' || key.toLowerCase() === 'x-auth-token') {
+        authHeader = req.headers[key];
+        if (authHeader) break;
+      }
+    }
+    
+    logger.debug('인증 헤더 발견:', authHeader);
+    
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({
         success: false,
