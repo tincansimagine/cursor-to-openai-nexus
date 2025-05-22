@@ -326,8 +326,24 @@ router.get("/models", async (req, res) => {
     // Hugging Face Space에서 Authorization 헤더가 자동으로 제거되므로 X-Auth-Token 사용
     let bearerToken = (req.headers.authorization || req.headers['x-auth-token'])?.replace('Bearer ', '');
     
+    // bearerToken이 없으면 오류 반환
+    if (!bearerToken) {
+      logger.error('API Key가 제공되지 않음');
+      return res.status(401).json({
+        error: 'API Key가 필요합니다',
+      });
+    }
+    
     // 使用keyManager获取实际的cookie
     let authToken = keyManager.getCookieForApiKey(bearerToken);
+    
+    // authToken이 없으면 오류 반환
+    if (!authToken) {
+      logger.error(`유효한 쿠키를 찾을 수 없음: ${bearerToken}`);
+      return res.status(401).json({
+        error: '유효한 쿠키를 찾을 수 없습니다. API Key를 확인하세요.',
+      });
+    }
     
     if (authToken && authToken.includes('%3A%3A')) {
       authToken = authToken.split('%3A%3A')[1];
@@ -414,6 +430,14 @@ router.post('/chat/completions', async (req, res) => {
     // Hugging Face Space에서 Authorization 헤더가 자동으로 제거되므로 X-Auth-Token 사용
     let bearerToken = (req.headers.authorization || req.headers['x-auth-token'])?.replace('Bearer ', '');
     
+    // bearerToken이 없으면 오류 반환
+    if (!bearerToken) {
+      logger.error('API Key가 제공되지 않음');
+      return res.status(401).json({
+        error: 'API Key가 필요합니다',
+      });
+    }
+    
     // 使用keyManager获取实际的cookie
     let authToken = keyManager.getCookieForApiKey(bearerToken);
     // 保存原始cookie，用于后续可能的错误处理
@@ -427,9 +451,17 @@ router.post('/chat/completions', async (req, res) => {
       authToken = authToken.split('::')[1];
     }
 
-    if (!messages || !Array.isArray(messages) || messages.length === 0 || !authToken) {
+    // messages와 authToken 검증
+    if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return res.status(400).json({
-        error: 'Invalid request. Messages should be a non-empty array and authorization is required',
+        error: 'Invalid request. Messages should be a non-empty array',
+      });
+    }
+    
+    if (!authToken) {
+      logger.error(`유효한 쿠키를 찾을 수 없음: ${bearerToken}`);
+      return res.status(401).json({
+        error: 'Invalid request. Authorization is required. 유효한 쿠키를 찾을 수 없습니다. API Key를 확인하세요.',
       });
     }
 
@@ -1376,6 +1408,12 @@ router.delete("/logs", (req, res) => {
 });
 async function others(authToken, clientKey, checksum, cursorClientVersion, sessionid){
   try {
+    // authToken이 없는 경우 바로 반환
+    if (!authToken) {
+      logger.error('others 함수 호출 시 authToken이 없습니다');
+      return false;
+    }
+    
     // 定义所有API端点配置
     const endpoints = [
       {
